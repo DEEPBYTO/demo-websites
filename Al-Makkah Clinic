@@ -1,0 +1,1607 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Al-Makkah Clinic — Management System</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+ --primary:#0f766e;--primary2:#115e59;--primary-light:#ccfbf1;
+ --bg:#f1f5f9;--card:#fff;--text:#0f172a;--muted:#64748b;
+ --border:#e2e8f0;--danger:#dc2626;--danger-bg:#fee2e2;
+ --warning:#d97706;--warning-bg:#fef3c7;--success:#16a34a;--success-bg:#dcfce7;
+ --info:#2563eb;--info-bg:#dbeafe;
+ --sidebar:#0b1720;--radius:10px;--shadow:0 1px 3px rgba(0,0,0,.06);
+}
+html,body{height:100%}
+body{font-family:'Segoe UI',Inter,system-ui,Arial,sans-serif;background:var(--bg);color:var(--text);font-size:14px;line-height:1.5}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer;border:0;background:none}
+.hidden{display:none!important}
+input,select,textarea{width:100%;padding:9px 11px;border:1px solid var(--border);border-radius:8px;background:#fff;outline:none;transition:.15s}
+input:focus,select:focus,textarea:focus{border-color:var(--primary);box-shadow:0 0 0 3px rgba(15,118,110,.12)}
+input[disabled],textarea[disabled]{background:#f8fafc;color:#64748b;cursor:not-allowed}
+label{display:block;font-size:12px;font-weight:600;margin-bottom:5px;color:#334155}
+
+/* LOGIN */
+#loginScreen{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px;background:linear-gradient(135deg,#042f2e 0%,#0f766e 100%)}
+.login-box{width:100%;max-width:440px;background:#fff;border-radius:16px;padding:36px;box-shadow:0 25px 70px rgba(0,0,0,.35)}
+.logo{width:68px;height:68px;border-radius:16px;background:linear-gradient(135deg,var(--primary),var(--primary2));color:#fff;display:flex;align-items:center;justify-content:center;font-size:26px;font-weight:800;margin-bottom:20px}
+.login-box h1{font-size:24px;margin-bottom:6px}
+.login-box .sub{color:var(--muted);margin-bottom:24px;font-size:13px}
+.login-error{background:#fee2e2;color:#991b1b;padding:11px 13px;border-radius:8px;font-size:13px;margin-bottom:16px;border-left:3px solid #dc2626}
+.login-btn{width:100%;background:var(--primary);color:#fff;padding:12px;border-radius:9px;font-weight:700;font-size:14px;transition:.15s}
+.login-btn:hover{background:var(--primary2)}
+.login-btn:disabled{opacity:.6;cursor:not-allowed}
+.demo-hint{margin-top:16px;padding:11px;background:#f0fdfa;border:1px solid #99f6e4;border-radius:8px;font-size:12px;color:#115e59;text-align:center}
+.tabs{display:flex;gap:6px;margin-bottom:20px;background:#f1f5f9;padding:4px;border-radius:8px}
+.tabs button{flex:1;padding:8px;border-radius:6px;font-size:13px;font-weight:600;color:var(--muted)}
+.tabs button.active{background:#fff;color:var(--primary);box-shadow:var(--shadow)}
+
+/* APP */
+#app{display:none;min-height:100vh}
+.sidebar{width:250px;position:fixed;left:0;top:0;bottom:0;background:var(--sidebar);color:#fff;padding:18px 12px;z-index:20;overflow-y:auto}
+.brand{padding:8px 10px 20px;border-bottom:1px solid rgba(255,255,255,.08);margin-bottom:14px;display:flex;align-items:center;gap:10px}
+.brand .b-logo{width:38px;height:38px;border-radius:10px;background:var(--primary);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:15px}
+.brand strong{font-size:15px;display:block;line-height:1.2}
+.brand span{display:block;color:#94a3b8;font-size:11px;margin-top:2px}
+.nav-section{font-size:10px;text-transform:uppercase;color:#64748b;padding:12px 12px 6px;letter-spacing:.5px;font-weight:700}
+.nav-item{width:100%;display:flex;align-items:center;gap:11px;padding:10px 12px;color:#cbd5e1;border-radius:7px;margin-bottom:2px;text-align:left;font-size:13.5px;transition:.12s}
+.nav-item:hover{background:rgba(255,255,255,.05);color:#fff}
+.nav-item.active{background:var(--primary);color:#fff;font-weight:600}
+.nav-icon{width:18px;text-align:center;font-size:15px}
+.logout{margin-top:14px;color:#fca5a5}
+.logout:hover{background:#7f1d1d;color:#fff}
+.main{margin-left:250px;min-height:100vh;display:flex;flex-direction:column}
+.topbar{height:64px;background:#fff;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 24px;position:sticky;top:0;z-index:10}
+.topbar h2{font-size:17px;font-weight:700}
+.topbar .sub{font-size:12px;color:var(--muted);margin-top:1px}
+.user{display:flex;align-items:center;gap:10px;font-size:13px}
+.user .name{font-weight:600}
+.user .role{font-size:11px;color:var(--muted)}
+.avatar{width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,#14b8a6,#0f766e);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:14px}
+.content{padding:24px;flex:1}
+.page{display:none;animation:fadeIn .2s}
+.page.active{display:block}
+@keyframes fadeIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:translateY(0)}}
+.page-title{display:flex;align-items:center;justify-content:space-between;gap:15px;margin-bottom:18px;flex-wrap:wrap}
+.page-title h1{font-size:21px;font-weight:700}
+.page-title p{font-size:12.5px;color:var(--muted);margin-top:2px}
+
+/* BUTTONS */
+.btn{border-radius:8px;padding:9px 14px;font-size:13px;font-weight:600;transition:.15s;display:inline-flex;align-items:center;gap:6px;white-space:nowrap}
+.btn:disabled{opacity:.55;cursor:not-allowed}
+.btn-primary{background:var(--primary);color:#fff}
+.btn-primary:hover:not(:disabled){background:var(--primary2)}
+.btn-secondary{background:#e2e8f0;color:#334155}
+.btn-secondary:hover:not(:disabled){background:#cbd5e1}
+.btn-danger{background:var(--danger-bg);color:#991b1b}
+.btn-danger:hover:not(:disabled){background:#fecaca}
+.btn-success{background:var(--success-bg);color:#166534}
+.btn-outline{background:#fff;border:1px solid var(--border);color:#334155}
+.btn-outline:hover{background:#f8fafc}
+.btn-sm{padding:6px 10px;font-size:12px}
+
+/* CARDS */
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:20px}
+.stat{background:#fff;border:1px solid var(--border);border-radius:var(--radius);padding:16px;box-shadow:var(--shadow);position:relative;overflow:hidden}
+.stat-top{display:flex;justify-content:space-between;align-items:center;color:var(--muted);font-size:12.5px;font-weight:500}
+.stat-value{font-size:26px;font-weight:800;margin-top:8px;color:var(--text)}
+.stat-icon{width:36px;height:36px;border-radius:9px;background:var(--primary-light);color:var(--primary);display:flex;align-items:center;justify-content:center;font-size:16px}
+.stat.green .stat-icon{background:#dcfce7;color:#16a34a}
+.stat.blue .stat-icon{background:#dbeafe;color:#2563eb}
+.stat.amber .stat-icon{background:#fef3c7;color:#d97706}
+.grid-2{display:grid;grid-template-columns:1.5fr 1fr;gap:16px}
+.grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+.card{background:#fff;border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden}
+.card-head{padding:14px 18px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+.card-head h3{font-size:14.5px;font-weight:700}
+.card-body{padding:18px}
+.card-body.no-pad{padding:0}
+
+/* TABLES */
+.table-wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse}
+th,td{padding:11px 14px;border-bottom:1px solid var(--border);text-align:left;font-size:13px;white-space:nowrap;vertical-align:middle}
+th{background:#f8fafc;color:#475569;font-size:11px;text-transform:uppercase;font-weight:700;letter-spacing:.4px}
+tbody tr:hover{background:#f8fafc}
+tbody tr:last-child td{border-bottom:0}
+.badge{display:inline-block;padding:3px 9px;border-radius:20px;font-size:11px;font-weight:700;line-height:1.5}
+.badge-green{background:var(--success-bg);color:#166534}
+.badge-yellow{background:var(--warning-bg);color:#92400e}
+.badge-red{background:var(--danger-bg);color:#991b1b}
+.badge-blue{background:var(--info-bg);color:#1e40af}
+.badge-gray{background:#f1f5f9;color:#475569}
+.actions{display:flex;gap:5px}
+.empty{padding:40px 20px;text-align:center;color:var(--muted);font-size:13.5px}
+.empty-icon{font-size:38px;margin-bottom:8px;opacity:.4}
+
+/* TOOLBAR */
+.toolbar{display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap;align-items:center}
+.search{flex:1;min-width:220px;position:relative}
+.search input{padding-left:34px}
+.search::before{content:"🔍";position:absolute;left:11px;top:50%;transform:translateY(-50%);font-size:13px;opacity:.5}
+.filter-select{min-width:150px;width:auto}
+
+/* FORMS */
+.form-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:14px}
+.form-grid .full{grid-column:1/-1}
+.form-grid .third{grid-column:span 1}
+.section-title{grid-column:1/-1;font-size:12px;font-weight:700;color:var(--primary);text-transform:uppercase;letter-spacing:.5px;margin-top:8px;padding-bottom:6px;border-bottom:1px solid var(--border)}
+
+/* MODAL */
+.modal{position:fixed;inset:0;background:rgba(15,23,42,.55);display:none;align-items:center;justify-content:center;padding:20px;z-index:100;backdrop-filter:blur(2px)}
+.modal.show{display:flex}
+.modal-box{width:100%;max-width:680px;max-height:92vh;overflow:auto;background:#fff;border-radius:14px;box-shadow:0 25px 70px rgba(0,0,0,.35);display:flex;flex-direction:column}
+.modal-box.wide{max-width:900px}
+.modal-head{padding:16px 22px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;background:#fff;z-index:1;border-radius:14px 14px 0 0}
+.modal-head h3{font-size:16px;font-weight:700}
+.close{width:32px;height:32px;border-radius:8px;font-size:20px;color:#64748b;display:flex;align-items:center;justify-content:center}
+.close:hover{background:#f1f5f9;color:#0f172a}
+.modal-body{padding:22px;flex:1}
+.modal-foot{padding:14px 22px;border-top:1px solid var(--border);display:flex;justify-content:flex-end;gap:8px;position:sticky;bottom:0;background:#fff;border-radius:0 0 14px 14px}
+
+/* TOAST */
+#toast{position:fixed;top:20px;right:20px;z-index:200;display:flex;flex-direction:column;gap:8px}
+.toast{background:#0f172a;color:#fff;padding:12px 16px;border-radius:9px;font-size:13px;font-weight:500;box-shadow:0 10px 30px rgba(0,0,0,.25);animation:slideIn .25s;display:flex;align-items:center;gap:10px;min-width:250px;max-width:400px}
+.toast.success{background:#065f46;border-left:3px solid #10b981}
+.toast.error{background:#7f1d1d;border-left:3px solid #ef4444}
+.toast.info{background:#1e3a8a;border-left:3px solid #3b82f6}
+@keyframes slideIn{from{transform:translateX(100%);opacity:0}to{transform:translateX(0);opacity:1}}
+
+/* WELCOME */
+.welcome{background:linear-gradient(135deg,#0f766e,#134e4a);color:#fff;border-radius:var(--radius);padding:22px 24px;margin-bottom:18px;position:relative;overflow:hidden}
+.welcome::after{content:"";position:absolute;right:-30px;top:-30px;width:150px;height:150px;background:rgba(255,255,255,.06);border-radius:50%}
+.welcome h2{font-size:19px;margin-bottom:5px}
+.welcome p{color:#a7f3d0;font-size:13px}
+
+/* PRINT */
+@media print{
+ .sidebar,.topbar,.page-title button,.no-print{display:none!important}
+ .main{margin-left:0}
+ .content{padding:0}
+ .modal{position:static;background:#fff;padding:0}
+ .modal-box{box-shadow:none;max-width:100%}
+ .modal-foot,.modal-head .close{display:none}
+}
+
+/* RESPONSIVE */
+.mobile-menu{display:none;font-size:20px;padding:6px 10px;border-radius:6px}
+.mobile-menu:hover{background:#f1f5f9}
+@media(max-width:1100px){
+ .stats{grid-template-columns:repeat(2,1fr)}
+ .grid-2,.grid-3{grid-template-columns:1fr}
+}
+@media(max-width:768px){
+ .sidebar{transform:translateX(-100%);transition:.25s}
+ .sidebar.open{transform:translateX(0)}
+ .main{margin-left:0}
+ .mobile-menu{display:block}
+ .topbar{padding:0 14px}
+ .content{padding:14px}
+ .form-grid{grid-template-columns:1fr}
+ .stats{grid-template-columns:1fr 1fr}
+ .page-title h1{font-size:18px}
+}
+@media(max-width:480px){
+ .stats{grid-template-columns:1fr}
+ .login-box{padding:24px 20px}
+ .modal-box{border-radius:0;max-height:100vh}
+}
+</style>
+</head>
+<body>
+
+<!-- ============ LOGIN ============ -->
+<section id="loginScreen">
+ <div class="login-box">
+  <div class="logo">AM</div>
+  <h1>Al-Makkah Clinic</h1>
+  <p class="sub">Clinic Management System</p>
+
+  <div class="tabs">
+   <button class="active" data-auth-tab="login" onclick="switchAuthTab('login')">Sign In</button>
+   <button data-auth-tab="register" onclick="switchAuthTab('register')">Register</button>
+  </div>
+
+  <div id="loginError" class="login-error hidden"></div>
+
+  <form id="loginForm" onsubmit="event.preventDefault();doLogin()">
+   <div style="margin-bottom:14px">
+    <label>Username</label>
+    <input id="loginUser" placeholder="Enter username" autocomplete="username" required>
+   </div>
+   <div style="margin-bottom:18px">
+    <label>Password</label>
+    <input id="loginPass" type="password" placeholder="Enter password" autocomplete="current-password" required>
+   </div>
+   <button type="submit" class="login-btn" id="loginBtn">Sign In</button>
+  </form>
+
+  <form id="registerForm" class="hidden" onsubmit="event.preventDefault();doRegister()">
+   <div style="margin-bottom:14px">
+    <label>Full Name</label>
+    <input id="regName" placeholder="Dr. Ahmed Khan" required>
+   </div>
+   <div style="margin-bottom:14px">
+    <label>Username</label>
+    <input id="regUser" placeholder="Choose username" required>
+   </div>
+   <div style="margin-bottom:14px">
+    <label>Password (min 6 characters)</label>
+    <input id="regPass" type="password" minlength="6" required>
+   </div>
+   <div style="margin-bottom:18px">
+    <label>Role</label>
+    <select id="regRole">
+     <option value="admin">Administrator</option>
+     <option value="doctor">Doctor</option>
+     <option value="receptionist">Receptionist</option>
+    </select>
+   </div>
+   <button type="submit" class="login-btn">Create Account</button>
+  </form>
+
+  <div class="demo-hint">
+   <strong>First time?</strong> Register as Administrator.<br>
+   Default demo login: <strong>admin / admin123</strong>
+  </div>
+ </div>
+</section>
+
+<!-- ============ APP ============ -->
+<div id="app">
+ <aside class="sidebar" id="sidebar">
+  <div class="brand">
+   <div class="b-logo">AM</div>
+   <div>
+    <strong>Al-Makkah Clinic</strong>
+    <span>Management System</span>
+   </div>
+  </div>
+
+  <div class="nav-section">Main</div>
+  <button class="nav-item active" data-page="dashboard"><span class="nav-icon">⌂</span> Dashboard</button>
+  <button class="nav-item" data-page="patients"><span class="nav-icon">♙</span> Patients</button>
+  <button class="nav-item" data-page="appointments"><span class="nav-icon">▣</span> Appointments</button>
+  <button class="nav-item" data-page="doctors"><span class="nav-icon">⚕</span> Doctors</button>
+
+  <div class="nav-section">Clinical</div>
+  <button class="nav-item" data-page="prescriptions"><span class="nav-icon">℞</span> Prescriptions</button>
+  <button class="nav-item" data-page="billing"><span class="nav-icon">₨</span> Billing</button>
+
+  <div class="nav-section">System</div>
+  <button class="nav-item" data-page="reports"><span class="nav-icon">▥</span> Reports</button>
+  <button class="nav-item" data-page="settings"><span class="nav-icon">⚙</span> Settings</button>
+
+  <button class="nav-item logout" onclick="doLogout()"><span class="nav-icon">↪</span> Logout</button>
+ </aside>
+
+ <main class="main">
+  <header class="topbar">
+   <div style="display:flex;align-items:center;gap:10px">
+    <button class="mobile-menu" onclick="toggleSidebar()">☰</button>
+    <div>
+     <h2 id="topTitle">Dashboard</h2>
+     <div class="sub" id="topSub">Welcome back</div>
+    </div>
+   </div>
+   <div class="user">
+    <div style="text-align:right">
+     <div class="name" id="userName">Administrator</div>
+     <div class="role" id="userRole">Admin</div>
+    </div>
+    <div class="avatar" id="userAvatar">A</div>
+   </div>
+  </header>
+
+  <div class="content">
+
+   <!-- DASHBOARD -->
+   <section class="page active" id="dashboard">
+    <div class="welcome">
+     <h2 id="welcomeName">Welcome back, Administrator 👋</h2>
+     <p>Here's what's happening at your clinic today.</p>
+    </div>
+
+    <div class="stats">
+     <div class="stat"><div class="stat-top"><span>Total Patients</span><div class="stat-icon">♙</div></div><div class="stat-value" id="statPatients">0</div></div>
+     <div class="stat blue"><div class="stat-top"><span>Today's Appointments</span><div class="stat-icon">▣</div></div><div class="stat-value" id="statAppointments">0</div></div>
+     <div class="stat green"><div class="stat-top"><span>Doctors</span><div class="stat-icon">⚕</div></div><div class="stat-value" id="statDoctors">0</div></div>
+     <div class="stat amber"><div class="stat-top"><span>Revenue (Paid)</span><div class="stat-icon">₨</div></div><div class="stat-value">₨ <span id="statRevenue">0</span></div></div>
+    </div>
+
+    <div class="grid-2">
+     <div class="card">
+      <div class="card-head"><h3>Recent Patients</h3><button class="btn btn-outline btn-sm" onclick="showPage('patients')">View All</button></div>
+      <div class="table-wrap"><table><thead><tr><th>Patient</th><th>Phone</th><th>Gender</th><th>Age</th></tr></thead><tbody id="recentPatients"></tbody></table></div>
+     </div>
+     <div class="card">
+      <div class="card-head"><h3>Today's Appointments</h3><button class="btn btn-outline btn-sm" onclick="showPage('appointments')">View All</button></div>
+      <div class="table-wrap"><table><thead><tr><th>Patient</th><th>Doctor</th><th>Time</th></tr></thead><tbody id="todayAppointments"></tbody></table></div>
+     </div>
+    </div>
+   </section>
+
+   <!-- PATIENTS -->
+   <section class="page" id="patients">
+    <div class="page-title">
+     <div><h1>Patients</h1><p>Manage patient records & medical history</p></div>
+     <button class="btn btn-primary" onclick="openPatientModal()">+ Add Patient</button>
+    </div>
+    <div class="card">
+     <div class="card-body">
+      <div class="toolbar">
+       <div class="search"><input id="patientSearch" placeholder="Search by name, phone, or ID..." oninput="renderPatients()"></div>
+       <select id="patientGenderFilter" class="filter-select" onchange="renderPatients()" style="max-width:150px">
+        <option value="">All Genders</option><option>Male</option><option>Female</option><option>Other</option>
+       </select>
+      </div>
+     </div>
+     <div class="table-wrap">
+      <table>
+       <thead><tr><th>ID</th><th>Patient</th><th>Phone</th><th>Gender</th><th>Age</th><th>Blood</th><th>Actions</th></tr></thead>
+       <tbody id="patientsTable"></tbody>
+      </table>
+     </div>
+    </div>
+   </section>
+
+   <!-- APPOINTMENTS -->
+   <section class="page" id="appointments">
+    <div class="page-title">
+     <div><h1>Appointments</h1><p>Schedule & manage patient visits</p></div>
+     <button class="btn btn-primary" onclick="openAppointmentModal()">+ New Appointment</button>
+    </div>
+    <div class="card">
+     <div class="card-body">
+      <div class="toolbar">
+       <input type="date" id="apptDateFilter" class="filter-select" onchange="renderAppointments()">
+       <select id="apptStatusFilter" class="filter-select" onchange="renderAppointments()">
+        <option value="">All Status</option><option>Scheduled</option><option>Completed</option><option>Cancelled</option><option>Waiting</option>
+       </select>
+       <button class="btn btn-outline btn-sm" onclick="document.getElementById('apptDateFilter').value='';document.getElementById('apptStatusFilter').value='';renderAppointments()">Clear Filters</button>
+      </div>
+     </div>
+     <div class="table-wrap">
+      <table>
+       <thead><tr><th>ID</th><th>Patient</th><th>Doctor</th><th>Date</th><th>Time</th><th>Status</th><th>Actions</th></tr></thead>
+       <tbody id="appointmentsTable"></tbody>
+      </table>
+     </div>
+    </div>
+   </section>
+
+   <!-- DOCTORS -->
+   <section class="page" id="doctors">
+    <div class="page-title">
+     <div><h1>Doctors</h1><p>Manage clinic doctors & specialists</p></div>
+     <button class="btn btn-primary" onclick="openDoctorModal()">+ Add Doctor</button>
+    </div>
+    <div class="card">
+     <div class="table-wrap">
+      <table>
+       <thead><tr><th>ID</th><th>Doctor</th><th>Specialization</th><th>Phone</th><th>Fee</th><th>Actions</th></tr></thead>
+       <tbody id="doctorsTable"></tbody>
+      </table>
+     </div>
+    </div>
+   </section>
+
+   <!-- PRESCRIPTIONS -->
+   <section class="page" id="prescriptions">
+    <div class="page-title">
+     <div><h1>Prescriptions</h1><p>Create & manage patient prescriptions</p></div>
+     <button class="btn btn-primary" onclick="openPrescriptionModal()">+ New Prescription</button>
+    </div>
+    <div class="card">
+     <div class="table-wrap">
+      <table>
+       <thead><tr><th>ID</th><th>Patient</th><th>Doctor</th><th>Date</th><th>Diagnosis</th><th>Actions</th></tr></thead>
+       <tbody id="prescriptionsTable"></tbody>
+      </table>
+     </div>
+    </div>
+   </section>
+
+   <!-- BILLING -->
+   <section class="page" id="billing">
+    <div class="page-title">
+     <div><h1>Billing</h1><p>Manage invoices & payments</p></div>
+     <button class="btn btn-primary" onclick="openBillModal()">+ Create Invoice</button>
+    </div>
+    <div class="card">
+     <div class="card-body">
+      <div class="toolbar">
+       <select id="billStatusFilter" class="filter-select" onchange="renderBills()">
+        <option value="">All Status</option><option>Paid</option><option>Pending</option>
+       </select>
+      </div>
+     </div>
+     <div class="table-wrap">
+      <table>
+       <thead><tr><th>Invoice</th><th>Patient</th><th>Date</th><th>Items</th><th>Amount</th><th>Status</th><th>Actions</th></tr></thead>
+       <tbody id="billingTable"></tbody>
+      </table>
+     </div>
+    </div>
+   </section>
+
+   <!-- REPORTS -->
+   <section class="page" id="reports">
+    <div class="page-title">
+     <div><h1>Reports</h1><p>Clinic statistics & financial overview</p></div>
+     <div style="display:flex;gap:8px">
+      <button class="btn btn-outline" onclick="exportReportCSV()">📥 Export CSV</button>
+      <button class="btn btn-primary" onclick="window.print()">🖨 Print</button>
+     </div>
+    </div>
+
+    <div class="card" style="margin-bottom:16px">
+     <div class="card-body">
+      <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:end">
+       <div><label>From Date</label><input type="date" id="reportFrom"></div>
+       <div><label>To Date</label><input type="date" id="reportTo"></div>
+       <button class="btn btn-primary" onclick="updateReports()">Generate Report</button>
+       <button class="btn btn-outline" onclick="document.getElementById('reportFrom').value='';document.getElementById('reportTo').value='';updateReports()">Reset</button>
+      </div>
+     </div>
+    </div>
+
+    <div class="stats">
+     <div class="stat"><div class="stat-top"><span>Patients (Filtered)</span></div><div class="stat-value" id="reportPatients">0</div></div>
+     <div class="stat blue"><div class="stat-top"><span>Appointments</span></div><div class="stat-value" id="reportAppointments">0</div></div>
+     <div class="stat"><div class="stat-top"><span>Prescriptions</span></div><div class="stat-value" id="reportPrescriptions">0</div></div>
+     <div class="stat amber"><div class="stat-top"><span>Revenue (Paid)</span></div><div class="stat-value">₨ <span id="reportRevenue">0</span></div></div>
+    </div>
+
+    <div class="grid-2">
+     <div class="card">
+      <div class="card-head"><h3>Appointments by Status</h3></div>
+      <div class="card-body" id="reportApptBreakdown"></div>
+     </div>
+     <div class="card">
+      <div class="card-head"><h3>Revenue Summary</h3></div>
+      <div class="card-body" id="reportRevBreakdown"></div>
+     </div>
+    </div>
+   </section>
+
+   <!-- SETTINGS -->
+   <section class="page" id="settings">
+    <div class="page-title">
+     <div><h1>Settings</h1><p>Clinic information & system preferences</p></div>
+    </div>
+
+    <div class="grid-2">
+     <div class="card">
+      <div class="card-head"><h3>Clinic Information</h3></div>
+      <div class="card-body">
+       <div class="form-grid">
+        <div class="full"><label>Clinic Name</label><input id="settingClinic"></div>
+        <div><label>Phone</label><input id="settingPhone" placeholder="0300-0000000"></div>
+        <div><label>Currency</label><select id="settingCurrency"><option>PKR</option><option>USD</option><option>GBP</option><option>AED</option><option>SAR</option></select></div>
+        <div class="full"><label>Address</label><input id="settingAddress" placeholder="Clinic address"></div>
+        <div class="full"><label>Footer / Receipt Note</label><textarea id="settingNote" rows="3"></textarea></div>
+       </div>
+       <button class="btn btn-primary" style="margin-top:14px" onclick="saveSettings()">💾 Save Settings</button>
+      </div>
+     </div>
+
+     <div class="card">
+      <div class="card-head"><h3>Data Management</h3></div>
+      <div class="card-body">
+       <p style="color:var(--muted);font-size:12.5px;margin-bottom:14px">Backup your clinic data or restore from a previous backup. Data is stored locally in your browser's IndexedDB.</p>
+       <div style="display:flex;flex-direction:column;gap:8px">
+        <button class="btn btn-outline" onclick="exportBackup()">📥 Export Backup (JSON)</button>
+        <button class="btn btn-outline" onclick="document.getElementById('importFile').click()">📤 Import Backup</button>
+        <input type="file" id="importFile" accept=".json" class="hidden" onchange="importBackup(event)">
+        <button class="btn btn-danger" onclick="clearAllData()">🗑 Clear All Data</button>
+       </div>
+      </div>
+     </div>
+    </div>
+
+    <div class="card" style="margin-top:16px">
+     <div class="card-head"><h3>Users</h3><button class="btn btn-outline btn-sm" onclick="openUserModal()">+ Add User</button></div>
+     <div class="table-wrap">
+      <table>
+       <thead><tr><th>Name</th><th>Username</th><th>Role</th><th>Actions</th></tr></thead>
+       <tbody id="usersTable"></tbody>
+      </table>
+     </div>
+    </div>
+   </section>
+
+  </div>
+ </main>
+</div>
+
+<!-- MODAL -->
+<div class="modal" id="modal">
+ <div class="modal-box" id="modalBox">
+  <div class="modal-head">
+   <h3 id="modalTitle">Modal</h3>
+   <button class="close" onclick="closeModal()">×</button>
+  </div>
+  <div class="modal-body" id="modalBody"></div>
+  <div class="modal-foot" id="modalFoot">
+   <button class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+   <button class="btn btn-primary" id="modalSave">Save</button>
+  </div>
+ </div>
+</div>
+
+<!-- TOAST -->
+<div id="toast"></div>
+
+<script>
+/* =========================================================
+   AL-MAKKAH CLINIC — REAL WORKING SOFTWARE
+   Data persistence: IndexedDB (real database, large storage)
+   Multi-user with roles, full validation, real reports
+   ========================================================= */
+
+const DB_NAME = "almakkah_clinic_db";
+const DB_VERSION = 1;
+const STORES = ["patients","doctors","appointments","prescriptions","bills","users","settings"];
+let db = null;
+let session = null; // current logged-in user
+let _idb = null;
+
+/* ---------- INDEXEDDB ---------- */
+function openDB(){
+ return new Promise((resolve,reject)=>{
+  const req = indexedDB.open(DB_NAME, DB_VERSION);
+  req.onupgradeneeded = e => {
+   const d = e.target.result;
+   STORES.forEach(name=>{
+    if(!d.objectStoreNames.contains(name)){
+     const store = d.createObjectStore(name,{keyPath:"id"});
+     if(name!=="settings" && name!=="users") store.createIndex("createdAt","createdAt");
+    }
+   });
+  };
+  req.onsuccess = e => { db = e.target.result; resolve(db); };
+  req.onerror = e => reject(e.target.error);
+ });
+}
+function idbPut(store, obj){
+ return new Promise((resolve,reject)=>{
+  const tx = db.transaction(store,"readwrite");
+  tx.objectStore(store).put(obj);
+  tx.oncomplete = ()=>resolve(obj);
+  tx.onerror = e=>reject(e.target.error);
+ });
+}
+function idbGetAll(store){
+ return new Promise((resolve,reject)=>{
+  const tx = db.transaction(store,"readonly");
+  const req = tx.objectStore(store).getAll();
+  req.onsuccess = ()=>resolve(req.result||[]);
+  req.onerror = e=>reject(e.target.error);
+ });
+}
+function idbGet(store,id){
+ return new Promise((resolve,reject)=>{
+  const tx = db.transaction(store,"readonly");
+  const req = tx.objectStore(store).get(id);
+  req.onsuccess = ()=>resolve(req.result);
+  req.onerror = e=>reject(e.target.error);
+ });
+}
+function idbDelete(store,id){
+ return new Promise((resolve,reject)=>{
+  const tx = db.transaction(store,"readwrite");
+  tx.objectStore(store).delete(id);
+  tx.oncomplete = ()=>resolve();
+  tx.onerror = e=>reject(e.target.error);
+ });
+}
+function idbClear(store){
+ return new Promise((resolve,reject)=>{
+  const tx = db.transaction(store,"readwrite");
+  tx.objectStore(store).clear();
+  tx.oncomplete = ()=>resolve();
+  tx.onerror = e=>reject(e.target.error);
+ });
+}
+
+/* ---------- IN-MEMORY CACHE ---------- */
+const cache = {
+ patients:[], doctors:[], appointments:[], prescriptions:[], bills:[], users:[], settings:{}
+};
+
+async function loadAllFromDB(){
+ for(const s of ["patients","doctors","appointments","prescriptions","bills","users"]){
+  cache[s] = await idbGetAll(s);
+ }
+ const settingsList = await idbGetAll("settings");
+ cache.settings = settingsList.find(s=>s.id==="main") || defaultSettings();
+}
+
+async function seedIfEmpty(){
+ const users = await idbGetAll("users");
+ if(users.length === 0){
+  // seed default admin
+  await idbPut("users", {
+   id: "u-"+Date.now(),
+   name: "Administrator",
+   username: "admin",
+   password: hash("admin123"),
+   role: "admin",
+   createdAt: new Date().toISOString()
+  });
+ }
+ const patients = await idbGetAll("patients");
+ if(patients.length === 0){
+  await idbPut("patients",{id:"P-000001",name:"Muhammad Ali",phone:"03001234567",gender:"Male",age:"35",blood:"B+",address:"Multan",history:"No known allergies",createdAt:new Date().toISOString()});
+ }
+ const doctors = await idbGetAll("doctors");
+ if(doctors.length === 0){
+  await idbPut("doctors",{id:"D-000001",name:"Dr. Ahmed Khan",specialization:"General Physician",phone:"03001112233",fee:1000,createdAt:new Date().toISOString()});
+ }
+ const settingsList = await idbGetAll("settings");
+ if(settingsList.length === 0){
+  await idbPut("settings",{id:"main", ...defaultSettings()});
+ }
+}
+
+function defaultSettings(){
+ return { clinic:"Al-Makkah Clinic", phone:"", address:"", currency:"PKR", note:"Thank you for visiting Al-Makkah Clinic." };
+}
+
+/* ---------- HASH (simple, non-crypto; for demo security) ---------- */
+function hash(str){
+ // Simple hash for demo. In production use bcrypt on server.
+ let h = 0;
+ for(let i=0;i<str.length;i++){ h = ((h<<5)-h) + str.charCodeAt(i); h |= 0; }
+ return "h" + Math.abs(h).toString(36);
+}
+
+/* ---------- UTIL ---------- */
+function uid(prefix){ return prefix + "-" + Date.now().toString(36) + Math.random().toString(36).slice(2,5); }
+function today(){ return new Date().toISOString().split("T")[0]; }
+function fmtMoney(v){ return Number(v||0).toLocaleString("en-PK"); }
+function esc(v){ return String(v??"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&#039;"); }
+function getPatient(id){ return cache.patients.find(p=>p.id===id); }
+function getDoctor(id){ return cache.doctors.find(d=>d.id===id); }
+function getUser(id){ return cache.users.find(u=>u.id===id); }
+
+function toast(msg, type="info"){
+ const el = document.createElement("div");
+ el.className = "toast " + type;
+ el.textContent = msg;
+ document.getElementById("toast").appendChild(el);
+ setTimeout(()=>{ el.style.opacity="0"; el.style.transition="opacity .3s"; setTimeout(()=>el.remove(),300); }, 3000);
+}
+
+/* ---------- AUTH ---------- */
+function switchAuthTab(tab){
+ document.querySelectorAll("[data-auth-tab]").forEach(b=>b.classList.toggle("active", b.dataset.authTab===tab));
+ document.getElementById("loginForm").classList.toggle("hidden", tab!=="login");
+ document.getElementById("registerForm").classList.toggle("hidden", tab!=="register");
+ document.getElementById("loginError").classList.add("hidden");
+}
+
+function showLoginError(msg){
+ const el = document.getElementById("loginError");
+ el.textContent = msg;
+ el.classList.remove("hidden");
+}
+
+async function doLogin(){
+ const u = document.getElementById("loginUser").value.trim();
+ const p = document.getElementById("loginPass").value;
+ if(!u || !p){ showLoginError("Please enter username and password."); return; }
+
+ const user = cache.users.find(x=>x.username.toLowerCase()===u.toLowerCase());
+ if(!user || user.password !== hash(p)){
+  showLoginError("Invalid username or password.");
+  return;
+ }
+ session = { id:user.id, name:user.name, role:user.role, username:user.username };
+ sessionStorage.setItem("almakkah_session", JSON.stringify(session));
+ enterApp();
+}
+
+async function doRegister(){
+ const name = document.getElementById("regName").value.trim();
+ const username = document.getElementById("regUser").value.trim();
+ const pass = document.getElementById("regPass").value;
+ const role = document.getElementById("regRole").value;
+
+ if(!name || !username || !pass){ showLoginError("All fields are required."); return; }
+ if(pass.length < 6){ showLoginError("Password must be at least 6 characters."); return; }
+ if(cache.users.some(u=>u.username.toLowerCase()===username.toLowerCase())){
+  showLoginError("Username already taken."); return;
+ }
+ const user = { id: uid("u"), name, username, password: hash(pass), role, createdAt: new Date().toISOString() };
+ await idbPut("users", user);
+ cache.users.push(user);
+ toast("Account created! You can now sign in.","success");
+ switchAuthTab("login");
+ document.getElementById("loginUser").value = username;
+ document.getElementById("loginPass").value = "";
+}
+
+function doLogout(){
+ if(!confirm("Logout from Al-Makkah Clinic?")) return;
+ session = null;
+ sessionStorage.removeItem("almakkah_session");
+ document.getElementById("app").style.display = "none";
+ document.getElementById("loginScreen").style.display = "flex";
+ document.getElementById("loginPass").value = "";
+}
+
+function enterApp(){
+ document.getElementById("loginScreen").style.display = "none";
+ document.getElementById("app").style.display = "block";
+ document.getElementById("userName").textContent = session.name;
+ document.getElementById("userRole").textContent = session.role.charAt(0).toUpperCase()+session.role.slice(1);
+ document.getElementById("userAvatar").textContent = (session.name||"U").charAt(0).toUpperCase();
+ document.getElementById("welcomeName").textContent = "Welcome back, " + session.name + " 👋";
+ // Role-based nav (simple)
+ document.querySelectorAll(".nav-item[data-page]").forEach(n=>{
+  const page = n.dataset.page;
+  if(session.role === "doctor" && (page === "settings")) n.classList.add("hidden");
+  if(session.role === "receptionist" && (page === "settings" || page === "prescriptions")) n.classList.add("hidden");
+ });
+ updateAll();
+ showPage("dashboard");
+}
+
+/* ---------- NAV ---------- */
+const titles = {
+ dashboard:["Dashboard","Clinic overview"],
+ patients:["Patients","Manage patient records"],
+ appointments:["Appointments","Schedule & manage visits"],
+ doctors:["Doctors","Manage clinic doctors"],
+ prescriptions:["Prescriptions","Create & manage prescriptions"],
+ billing:["Billing","Manage invoices & payments"],
+ reports:["Reports","Clinic statistics"],
+ settings:["Settings","Clinic & system preferences"]
+};
+document.querySelectorAll(".nav-item[data-page]").forEach(btn=>{
+ btn.addEventListener("click",()=>{ showPage(btn.dataset.page); document.getElementById("sidebar").classList.remove("open"); });
+});
+function showPage(page){
+ document.querySelectorAll(".page").forEach(p=>p.classList.remove("active"));
+ const target = document.getElementById(page);
+ if(target) target.classList.add("active");
+ document.querySelectorAll(".nav-item").forEach(n=>n.classList.remove("active"));
+ const nav = document.querySelector('.nav-item[data-page="'+page+'"]');
+ if(nav) nav.classList.add("active");
+ const t = titles[page] || [page,""];
+ document.getElementById("topTitle").textContent = t[0];
+ document.getElementById("topSub").textContent = t[1];
+ window.scrollTo({top:0,behavior:"smooth"});
+}
+function toggleSidebar(){ document.getElementById("sidebar").classList.toggle("open"); }
+
+/* ---------- MODAL ---------- */
+function openModal(title, body, onSave, opts={}){
+ document.getElementById("modalTitle").textContent = title;
+ document.getElementById("modalBody").innerHTML = body;
+ const saveBtn = document.getElementById("modalSave");
+ const foot = document.getElementById("modalFoot");
+ if(opts.hideFooter){ foot.style.display = "none"; }
+ else{
+  foot.style.display = "flex";
+  saveBtn.style.display = onSave ? "inline-flex" : "none";
+  saveBtn.textContent = opts.saveText || "Save";
+  saveBtn.onclick = onSave;
+ }
+ document.getElementById("modalBox").classList.toggle("wide", !!opts.wide);
+ document.getElementById("modal").classList.add("show");
+}
+function closeModal(){
+ document.getElementById("modal").classList.remove("show");
+}
+document.getElementById("modal").addEventListener("click",e=>{ if(e.target.id==="modal") closeModal(); });
+document.addEventListener("keydown",e=>{ if(e.key==="Escape") closeModal(); });
+
+/* ---------- VALIDATION HELPERS ---------- */
+function isPhone(v){ return /^[0-9+\-\s()]{7,20}$/.test(v.trim()); }
+function isNumeric(v){ return v!=="" && !isNaN(v) && Number(v)>=0; }
+
+/* =========================================================
+   PATIENTS
+   ========================================================= */
+function openPatientModal(editId){
+ const p = editId ? getPatient(editId) : null;
+ openModal(p?"Edit Patient":"Add New Patient", `
+  <div class="form-grid">
+   <div class="field full"><label>Full Name *</label><input id="fName" value="${esc(p?.name||"")}" placeholder="Patient full name"></div>
+   <div><label>Phone *</label><input id="fPhone" value="${esc(p?.phone||"")}" placeholder="0300-1234567"></div>
+   <div><label>Gender</label><select id="fGender">
+    <option ${p?.gender==="Male"?"selected":""}>Male</option>
+    <option ${p?.gender==="Female"?"selected":""}>Female</option>
+    <option ${p?.gender==="Other"?"selected":""}>Other</option>
+   </select></div>
+   <div><label>Age</label><input id="fAge" type="number" min="0" max="150" value="${esc(p?.age||"")}"></div>
+   <div><label>Blood Group</label><select id="fBlood">
+    ${["Unknown","A+","A-","B+","B-","AB+","AB-","O+","O-"].map(b=>`<option ${p?.blood===b?"selected":""}>${b}</option>`).join("")}
+   </select></div>
+   <div class="full"><label>Address</label><input id="fAddress" value="${esc(p?.address||"")}"></div>
+   <div class="full"><label>Medical History / Allergies</label><textarea id="fHistory" rows="3">${esc(p?.history||"")}</textarea></div>
+  </div>
+ `, ()=>savePatient(editId));
+}
+async function savePatient(editId){
+ const name = document.getElementById("fName").value.trim();
+ const phone = document.getElementById("fPhone").value.trim();
+ if(!name){ toast("Patient name is required.","error"); return; }
+ if(!phone){ toast("Phone number is required.","error"); return; }
+ if(!isPhone(phone)){ toast("Please enter a valid phone number.","error"); return; }
+
+ const obj = {
+  id: editId || uid("P"),
+  name, phone,
+  gender: document.getElementById("fGender").value,
+  age: document.getElementById("fAge").value,
+  blood: document.getElementById("fBlood").value,
+  address: document.getElementById("fAddress").value.trim(),
+  history: document.getElementById("fHistory").value.trim(),
+  createdAt: editId ? (getPatient(editId)?.createdAt||new Date().toISOString()) : new Date().toISOString()
+ };
+ await idbPut("patients", obj);
+ await reloadStore("patients");
+ toast(editId?"Patient updated.":"Patient added.","success");
+ closeModal();
+}
+
+function renderPatients(){
+ const tbody = document.getElementById("patientsTable");
+ const q = (document.getElementById("patientSearch").value||"").toLowerCase();
+ const g = document.getElementById("patientGenderFilter").value;
+ const list = cache.patients
+  .filter(p=> (!g || p.gender===g) && (p.name.toLowerCase().includes(q) || p.phone.toLowerCase().includes(q) || p.id.toLowerCase().includes(q)))
+  .sort((a,b)=> (b.createdAt||"").localeCompare(a.createdAt||""));
+
+ tbody.innerHTML = list.length ? list.map(p=>`
+  <tr>
+   <td><strong>${esc(p.id)}</strong></td>
+   <td>${esc(p.name)}</td>
+   <td>${esc(p.phone)}</td>
+   <td>${esc(p.gender)}</td>
+   <td>${esc(p.age||"-")}</td>
+   <td>${esc(p.blood||"-")}</td>
+   <td>
+    <div class="actions">
+     <button class="btn btn-outline btn-sm" onclick="viewPatient('${p.id}')">View</button>
+     <button class="btn btn-outline btn-sm" onclick="openPatientModal('${p.id}')">Edit</button>
+     <button class="btn btn-danger btn-sm" onclick="deletePatient('${p.id}')">Delete</button>
+    </div>
+   </td>
+  </tr>`).join("") : `<tr><td colspan="7"><div class="empty"><div class="empty-icon">♙</div>No patients found.<br><button class="btn btn-primary btn-sm" style="margin-top:10px" onclick="openPatientModal()">+ Add Patient</button></div></td></tr>`;
+
+ // recent on dashboard
+ const recent = document.getElementById("recentPatients");
+ if(recent){
+  recent.innerHTML = cache.patients.slice().sort((a,b)=>(b.createdAt||"").localeCompare(a.createdAt||"")).slice(0,5).map(p=>`
+   <tr><td>${esc(p.name)}</td><td>${esc(p.phone)}</td><td>${esc(p.gender)}</td><td>${esc(p.age||"-")}</td></tr>
+  `).join("") || `<tr><td colspan="4" class="empty">No patients yet.</td></tr>`;
+ }
+}
+
+function viewPatient(id){
+ const p = getPatient(id); if(!p) return;
+ const appts = cache.appointments.filter(a=>a.patientId===id);
+ const rxs = cache.prescriptions.filter(r=>r.patientId===id);
+ const bills = cache.bills.filter(b=>b.patientId===id);
+ openModal("Patient Details", `
+  <div style="display:flex;justify-content:space-between;align-items:start;margin-bottom:16px">
+   <div>
+    <h2 style="font-size:19px;margin-bottom:3px">${esc(p.name)}</h2>
+    <div style="font-size:12.5px;color:var(--muted)">${esc(p.id)} · ${esc(p.gender)} · ${esc(p.age||"-")} yrs · ${esc(p.blood||"-")}</div>
+   </div>
+   <button class="btn btn-outline btn-sm" onclick="openPatientModal('${p.id}')">Edit</button>
+  </div>
+  <div class="form-grid">
+   <div><label>Phone</label><input value="${esc(p.phone)}" disabled></div>
+   <div><label>Address</label><input value="${esc(p.address||"-")}" disabled></div>
+   <div class="full"><label>Medical History</label><textarea rows="3" disabled>${esc(p.history||"No notes")}</textarea></div>
+  </div>
+  <div class="stats" style="grid-template-columns:repeat(3,1fr);margin:16px 0">
+   <div class="stat"><div class="stat-top">Appointments</div><div class="stat-value" style="font-size:20px">${appts.length}</div></div>
+   <div class="stat"><div class="stat-top">Prescriptions</div><div class="stat-value" style="font-size:20px">${rxs.length}</div></div>
+   <div class="stat"><div class="stat-top">Invoices</div><div class="stat-value" style="font-size:20px">${bills.length}</div></div>
+  </div>
+  ${appts.length?`<div style="margin-top:14px"><strong style="font-size:13px">Recent Appointments</strong>
+   <table style="margin-top:8px"><thead><tr><th>Date</th><th>Doctor</th><th>Status</th></tr></thead><tbody>
+   ${appts.slice().sort((a,b)=>b.date.localeCompare(a.date)).slice(0,5).map(a=>`<tr><td>${esc(a.date)} ${esc(a.time)}</td><td>${esc(getDoctor(a.doctorId)?.name||"-")}</td><td>${statusBadge(a.status)}</td></tr>`).join("")}
+   </tbody></table></div>`:""}
+ `, null, {hideFooter:false, saveText:"Close"});
+ // Override save to close
+ document.getElementById("modalSave").onclick = closeModal;
+}
+
+async function deletePatient(id){
+ if(!confirm("Delete this patient? Related appointments and prescriptions will remain but may show 'Unknown'.")) return;
+ await idbDelete("patients", id);
+ await reloadStore("patients");
+ toast("Patient deleted.","success");
+}
+
+/* =========================================================
+   DOCTORS
+   ========================================================= */
+function openDoctorModal(editId){
+ const d = editId ? getDoctor(editId) : null;
+ openModal(d?"Edit Doctor":"Add Doctor", `
+  <div class="form-grid">
+   <div class="full"><label>Doctor Name *</label><input id="dName" value="${esc(d?.name||"")}" placeholder="Dr. Ahmed Khan"></div>
+   <div><label>Specialization *</label><input id="dSpec" value="${esc(d?.specialization||"")}" placeholder="General Physician"></div>
+   <div><label>Phone</label><input id="dPhone" value="${esc(d?.phone||"")}" placeholder="0300-1122334"></div>
+   <div><label>Consultation Fee (${esc(cache.settings.currency||"PKR")})</label><input id="dFee" type="number" min="0" value="${esc(d?.fee||1000)}"></div>
+  </div>
+ `, ()=>saveDoctor(editId));
+}
+async function saveDoctor(editId){
+ const name = document.getElementById("dName").value.trim();
+ const spec = document.getElementById("dSpec").value.trim();
+ const phone = document.getElementById("dPhone").value.trim();
+ const fee = Number(document.getElementById("dFee").value)||0;
+ if(!name || !spec){ toast("Name and specialization are required.","error"); return; }
+ if(phone && !isPhone(phone)){ toast("Invalid phone number.","error"); return; }
+ if(fee<0){ toast("Fee cannot be negative.","error"); return; }
+
+ const obj = {
+  id: editId || uid("D"),
+  name, specialization: spec, phone, fee,
+  createdAt: editId ? (getDoctor(editId)?.createdAt||new Date().toISOString()) : new Date().toISOString()
+ };
+ await idbPut("doctors", obj);
+ await reloadStore("doctors");
+ toast(editId?"Doctor updated.":"Doctor added.","success");
+ closeModal();
+}
+function renderDoctors(){
+ const tbody = document.getElementById("doctorsTable");
+ tbody.innerHTML = cache.doctors.length ? cache.doctors.map(d=>`
+  <tr>
+   <td>${esc(d.id)}</td>
+   <td><strong>${esc(d.name)}</strong></td>
+   <td>${esc(d.specialization)}</td>
+   <td>${esc(d.phone||"-")}</td>
+   <td>${esc(cache.settings.currency||"PKR")} ${fmtMoney(d.fee)}</td>
+   <td>
+    <div class="actions">
+     <button class="btn btn-outline btn-sm" onclick="openDoctorModal('${d.id}')">Edit</button>
+     <button class="btn btn-danger btn-sm" onclick="deleteDoctor('${d.id}')">Delete</button>
+    </div>
+   </td>
+  </tr>`).join("") : `<tr><td colspan="6"><div class="empty"><div class="empty-icon">⚕</div>No doctors yet.<br><button class="btn btn-primary btn-sm" style="margin-top:10px" onclick="openDoctorModal()">+ Add Doctor</button></div></td></tr>`;
+}
+async function deleteDoctor(id){
+ if(!confirm("Delete this doctor?")) return;
+ await idbDelete("doctors", id);
+ await reloadStore("doctors");
+ toast("Doctor deleted.","success");
+}
+
+/* =========================================================
+   APPOINTMENTS
+   ========================================================= */
+function openAppointmentModal(editId){
+ if(!cache.patients.length || !cache.doctors.length){
+  toast("Add at least one patient and one doctor first.","error"); return;
+ }
+ const a = editId ? cache.appointments.find(x=>x.id===editId) : null;
+ openModal(a?"Edit Appointment":"New Appointment", `
+  <div class="form-grid">
+   <div class="full"><label>Patient *</label><select id="aPatient">
+    ${cache.patients.map(p=>`<option value="${esc(p.id)}" ${a?.patientId===p.id?"selected":""}>${esc(p.name)} — ${esc(p.id)}</option>`).join("")}
+   </select></div>
+   <div class="full"><label>Doctor *</label><select id="aDoctor">
+    ${cache.doctors.map(d=>`<option value="${esc(d.id)}" ${a?.doctorId===d.id?"selected":""}>${esc(d.name)} — ${esc(d.specialization)}</option>`).join("")}
+   </select></div>
+   <div><label>Date *</label><input id="aDate" type="date" value="${esc(a?.date||today())}"></div>
+   <div><label>Time *</label><input id="aTime" type="time" value="${esc(a?.time||"10:00")}"></div>
+   <div><label>Status</label><select id="aStatus">
+    ${["Scheduled","Waiting","Completed","Cancelled"].map(s=>`<option ${a?.status===s?"selected":""}>${s}</option>`).join("")}
+   </select></div>
+   <div class="full"><label>Notes</label><textarea id="aNotes" rows="3">${esc(a?.notes||"")}</textarea></div>
+  </div>
+ `, ()=>saveAppointment(editId));
+}
+async function saveAppointment(editId){
+ const date = document.getElementById("aDate").value;
+ const time = document.getElementById("aTime").value;
+ const doctorId = document.getElementById("aDoctor").value;
+ if(!date || !time){ toast("Date and time are required.","error"); return; }
+
+ // Conflict detection: same doctor, same date, same time
+ const conflict = cache.appointments.find(x =>
+  x.id !== editId && x.doctorId===doctorId && x.date===date && x.time===time && x.status!=="Cancelled"
+ );
+ if(conflict){ toast("This doctor already has an appointment at this time.","error"); return; }
+
+ const obj = {
+  id: editId || uid("A"),
+  patientId: document.getElementById("aPatient").value,
+  doctorId, date, time,
+  status: document.getElementById("aStatus").value,
+  notes: document.getElementById("aNotes").value.trim(),
+  createdAt: editId ? (cache.appointments.find(x=>x.id===editId)?.createdAt||new Date().toISOString()) : new Date().toISOString()
+ };
+ await idbPut("appointments", obj);
+ await reloadStore("appointments");
+ toast(editId?"Appointment updated.":"Appointment scheduled.","success");
+ closeModal();
+}
+function renderAppointments(){
+ const tbody = document.getElementById("appointmentsTable");
+ const dateF = document.getElementById("apptDateFilter").value;
+ const statusF = document.getElementById("apptStatusFilter").value;
+ const list = cache.appointments
+  .filter(a=> (!dateF || a.date===dateF) && (!statusF || a.status===statusF))
+  .sort((a,b)=> (b.date+ b.time).localeCompare(a.date + a.time));
+
+ tbody.innerHTML = list.length ? list.map(a=>{
+  const p = getPatient(a.patientId), d = getDoctor(a.doctorId);
+  return `<tr>
+   <td>${esc(a.id)}</td>
+   <td>${esc(p?.name||"Unknown")}</td>
+   <td>${esc(d?.name||"Unknown")}</td>
+   <td>${esc(a.date)}</td>
+   <td>${esc(a.time)}</td>
+   <td>${statusBadge(a.status)}</td>
+   <td>
+    <div class="actions">
+     <button class="btn btn-outline btn-sm" onclick="openAppointmentModal('${a.id}')">Edit</button>
+     <button class="btn btn-danger btn-sm" onclick="deleteAppointment('${a.id}')">Delete</button>
+    </div>
+   </td>
+  </tr>`;
+ }).join("") : `<tr><td colspan="7"><div class="empty"><div class="empty-icon">▣</div>No appointments found.</div></td></tr>`;
+
+ // today's list on dashboard
+ const todayBody = document.getElementById("todayAppointments");
+ const todayList = cache.appointments.filter(a=>a.date===today()).sort((a,b)=>a.time.localeCompare(b.time));
+ if(todayBody){
+  todayBody.innerHTML = todayList.length ? todayList.slice(0,6).map(a=>{
+   const p = getPatient(a.patientId), d = getDoctor(a.doctorId);
+   return `<tr><td>${esc(p?.name||"Unknown")}</td><td>${esc(d?.name||"Unknown")}</td><td>${esc(a.time)}</td></tr>`;
+  }).join("") : `<tr><td colspan="3" class="empty">No appointments today.</td></tr>`;
+ }
+}
+async function deleteAppointment(id){
+ if(!confirm("Delete this appointment?")) return;
+ await idbDelete("appointments", id);
+ await reloadStore("appointments");
+ toast("Appointment deleted.","success");
+}
+
+function statusBadge(status){
+ const map = { Completed:"badge-green", Cancelled:"badge-red", Waiting:"badge-yellow", Scheduled:"badge-blue" };
+ return `<span class="badge ${map[status]||"badge-gray"}">${esc(status)}</span>`;
+}
+
+/* =========================================================
+   PRESCRIPTIONS
+   ========================================================= */
+function openPrescriptionModal(editId){
+ if(!cache.patients.length || !cache.doctors.length){
+  toast("Add at least one patient and one doctor first.","error"); return;
+ }
+ const r = editId ? cache.prescriptions.find(x=>x.id===editId) : null;
+ openModal(r?"Edit Prescription":"New Prescription", `
+  <div class="form-grid">
+   <div><label>Patient *</label><select id="prPatient">
+    ${cache.patients.map(p=>`<option value="${esc(p.id)}" ${r?.patientId===p.id?"selected":""}>${esc(p.name)}</option>`).join("")}
+   </select></div>
+   <div><label>Doctor *</label><select id="prDoctor">
+    ${cache.doctors.map(d=>`<option value="${esc(d.id)}" ${r?.doctorId===d.id?"selected":""}>${esc(d.name)}</option>`).join("")}
+   </select></div>
+   <div><label>Date</label><input id="prDate" type="date" value="${esc(r?.date||today())}"></div>
+   <div><label>Diagnosis</label><input id="prDiagnosis" value="${esc(r?.diagnosis||"")}" placeholder="e.g. Viral fever"></div>
+   <div class="full"><label>Medicines (one per line: Name — Dose — Frequency — Duration)</label>
+    <textarea id="prMedicines" rows="6" placeholder="Paracetamol — 500mg — TDS — 5 days&#10;Amoxicillin — 250mg — BD — 7 days">${esc(r?.medicines||"")}</textarea>
+   </div>
+   <div class="full"><label>Doctor Notes</label><textarea id="prNotes" rows="3">${esc(r?.notes||"")}</textarea></div>
+  </div>
+ `, ()=>savePrescription(editId));
+}
+async function savePrescription(editId){
+ const meds = document.getElementById("prMedicines").value.trim();
+ if(!meds){ toast("Please enter at least one medicine.","error"); return; }
+ const obj = {
+  id: editId || uid("RX"),
+  patientId: document.getElementById("prPatient").value,
+  doctorId: document.getElementById("prDoctor").value,
+  date: document.getElementById("prDate").value,
+  diagnosis: document.getElementById("prDiagnosis").value.trim(),
+  medicines: meds,
+  notes: document.getElementById("prNotes").value.trim(),
+  createdAt: editId ? (cache.prescriptions.find(x=>x.id===editId)?.createdAt||new Date().toISOString()) : new Date().toISOString()
+ };
+ await idbPut("prescriptions", obj);
+ await reloadStore("prescriptions");
+ toast(editId?"Prescription updated.":"Prescription created.","success");
+ closeModal();
+}
+function renderPrescriptions(){
+ const tbody = document.getElementById("prescriptionsTable");
+ tbody.innerHTML = cache.prescriptions.slice().sort((a,b)=>(b.date||"").localeCompare(a.date||"")).map(r=>{
+  const p = getPatient(r.patientId), d = getDoctor(r.doctorId);
+  return `<tr>
+   <td>${esc(r.id)}</td>
+   <td>${esc(p?.name||"Unknown")}</td>
+   <td>${esc(d?.name||"Unknown")}</td>
+   <td>${esc(r.date)}</td>
+   <td>${esc(r.diagnosis||"-")}</td>
+   <td>
+    <div class="actions">
+     <button class="btn btn-outline btn-sm" onclick="viewPrescription('${r.id}')">View</button>
+     <button class="btn btn-outline btn-sm" onclick="openPrescriptionModal('${r.id}')">Edit</button>
+     <button class="btn btn-danger btn-sm" onclick="deletePrescription('${r.id}')">Delete</button>
+    </div>
+   </td>
+  </tr>`;
+ }).join("") || `<tr><td colspan="6"><div class="empty"><div class="empty-icon">℞</div>No prescriptions found.</div></td></tr>`;
+}
+function viewPrescription(id){
+ const r = cache.prescriptions.find(x=>x.id===id); if(!r) return;
+ const p = getPatient(r.patientId), d = getDoctor(r.doctorId);
+ const clinic = cache.settings.clinic || "Al-Makkah Clinic";
+ openModal("Prescription", `
+  <div style="border:1px solid var(--border);padding:24px;border-radius:12px">
+   <div style="display:flex;justify-content:space-between;align-items:start;border-bottom:2px solid var(--primary);padding-bottom:14px;margin-bottom:16px">
+    <div>
+     <h2 style="color:var(--primary);font-size:20px;margin-bottom:3px">${esc(clinic)}</h2>
+     <div style="font-size:12px;color:var(--muted)">${esc(cache.settings.address||"")} ${cache.settings.phone?"· "+esc(cache.settings.phone):""}</div>
+    </div>
+    <div style="text-align:right;font-size:12px;color:var(--muted)">
+     <div><strong>Rx ID:</strong> ${esc(r.id)}</div>
+     <div><strong>Date:</strong> ${esc(r.date)}</div>
+    </div>
+   </div>
+   <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;font-size:13px;margin-bottom:16px">
+    <div><strong>Patient:</strong> ${esc(p?.name||"-")}</div>
+    <div><strong>Doctor:</strong> ${esc(d?.name||"-")}</div>
+    <div><strong>Diagnosis:</strong> ${esc(r.diagnosis||"-")}</div>
+    <div><strong>Contact:</strong> ${esc(p?.phone||"-")}</div>
+   </div>
+   <div style="background:#f0fdfa;padding:14px;border-radius:8px;border-left:3px solid var(--primary)">
+    <strong style="font-size:13px;color:var(--primary)">℞ Medicines</strong>
+    <div style="white-space:pre-line;margin-top:8px;font-size:13px;line-height:1.7">${esc(r.medicines)}</div>
+   </div>
+   ${r.notes?`<div style="margin-top:14px"><strong style="font-size:13px">Notes</strong><p style="white-space:pre-line;margin-top:6px;font-size:13px">${esc(r.notes)}</p></div>`:""}
+   <div style="margin-top:24px;padding-top:14px;border-top:1px dashed var(--border);text-align:center;font-size:11.5px;color:var(--muted)">${esc(cache.settings.note||"")}</div>
+  </div>
+ `, null, {saveText:"🖨 Print", hideFooter:false});
+ document.getElementById("modalSave").onclick = ()=>printRx(r);
+}
+function printRx(r){
+ const p = getPatient(r.patientId), d = getDoctor(r.doctorId);
+ const clinic = cache.settings.clinic || "Al-Makkah Clinic";
+ const w = window.open("","_blank");
+ w.document.write(`<!DOCTYPE html><html><head><title>${r.id}</title><style>
+  body{font-family:Arial;padding:40px;color:#172033;max-width:780px;margin:auto}
+  h1{color:#0f766e;margin-bottom:4px} .sub{font-size:12px;color:#64748b;margin-bottom:18px}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:13px;margin:16px 0}
+  .rx{background:#f0fdfa;padding:14px;border-left:3px solid #0f766e;border-radius:6px;white-space:pre-line;font-size:13px;line-height:1.7;margin-top:8px}
+  hr{border:0;border-top:2px solid #0f766e;margin:14px 0}
+  .foot{margin-top:40px;text-align:center;font-size:11px;color:#64748b;border-top:1px dashed #ddd;padding-top:14px}
+ </style></head><body onload="window.print()">
+  <h1>${esc(clinic)}</h1>
+  <div class="sub">${esc(cache.settings.address||"")} ${cache.settings.phone?" · "+esc(cache.settings.phone):""}</div>
+  <hr>
+  <div class="grid">
+   <div><strong>Patient:</strong> ${esc(p?.name||"-")}</div>
+   <div><strong>Doctor:</strong> ${esc(d?.name||"-")}</div>
+   <div><strong>Date:</strong> ${esc(r.date)}</div>
+   <div><strong>Rx ID:</strong> ${esc(r.id)}</div>
+   <div><strong>Diagnosis:</strong> ${esc(r.diagnosis||"-")}</div>
+   <div><strong>Contact:</strong> ${esc(p?.phone||"-")}</div>
+  </div>
+  <strong>℞ Medicines</strong>
+  <div class="rx">${esc(r.medicines)}</div>
+  ${r.notes?`<p style="margin-top:14px;font-size:13px"><strong>Notes:</strong> ${esc(r.notes)}</p>`:""}
+  <div class="foot">${esc(cache.settings.note||"")}</div>
+ </body></html>`);
+ w.document.close();
+}
+async function deletePrescription(id){
+ if(!confirm("Delete this prescription?")) return;
+ await idbDelete("prescriptions", id);
+ await reloadStore("prescriptions");
+ toast("Prescription deleted.","success");
+}
+
+/* =========================================================
+   BILLING
+   ========================================================= */
+function openBillModal(editId){
+ if(!cache.patients.length){ toast("Add a patient first.","error"); return; }
+ const b = editId ? cache.bills.find(x=>x.id===editId) : null;
+ const items = b?.items || [{description:"Consultation Fee", amount:1000}];
+ openModal(b?"Edit Invoice":"Create Invoice", `
+  <div class="form-grid">
+   <div><label>Patient *</label><select id="bPatient">
+    ${cache.patients.map(p=>`<option value="${esc(p.id)}" ${b?.patientId===p.id?"selected":""}>${esc(p.name)}</option>`).join("")}
+   </select></div>
+   <div><label>Date</label><input id="bDate" type="date" value="${esc(b?.date||today())}"></div>
+   <div class="full"><label>Status</label>
+    <select id="bStatus">
+     <option ${b?.status==="Paid"?"selected":""}>Paid</option>
+     <option ${b?.status==="Pending"?"selected":""}>Pending</option>
+    </select>
+   </div>
+   <div class="full section-title">Invoice Items</div>
+   <div class="full" id="billItemsContainer"></div>
+   <div class="full"><button class="btn btn-outline btn-sm" onclick="addBillItem()">+ Add Item</button></div>
+  </div>
+ `, ()=>saveBill(editId), {wide:true});
+ window._billItems = items.map(i=>({...i}));
+ renderBillItems();
+}
+function renderBillItems(){
+ const c = document.getElementById("billItemsContainer");
+ c.innerHTML = window._billItems.map((it,i)=>`
+  <div style="display:grid;grid-template-columns:3fr 1.2fr auto;gap:8px;margin-bottom:8px">
+   <input value="${esc(it.description)}" placeholder="Description" oninput="window._billItems[${i}].description=this.value">
+   <input type="number" min="0" value="${esc(it.amount)}" oninput="window._billItems[${i}].amount=Number(this.value)||0" onchange="renderBillItems()">
+   <button class="btn btn-danger btn-sm" onclick="window._billItems.splice(${i},1);renderBillItems()">✕</button>
+  </div>
+ `).join("") + `<div style="text-align:right;margin-top:12px;font-size:15px"><strong>Total: ${esc(cache.settings.currency||"PKR")} ${fmtMoney(window._billItems.reduce((s,i)=>s+Number(i.amount||0),0))}</strong></div>`;
+}
+function addBillItem(){ window._billItems.push({description:"",amount:0}); renderBillItems(); }
+async function saveBill(editId){
+ const items = window._billItems.filter(i=>i.description.trim() && i.amount>0);
+ if(items.length===0){ toast("Add at least one valid item.","error"); return; }
+ const total = items.reduce((s,i)=>s+Number(i.amount),0);
+ const obj = {
+  id: editId || uid("INV"),
+  patientId: document.getElementById("bPatient").value,
+  date: document.getElementById("bDate").value,
+  status: document.getElementById("bStatus").value,
+  items, amount: total,
+  createdAt: editId ? (cache.bills.find(x=>x.id===editId)?.createdAt||new Date().toISOString()) : new Date().toISOString()
+ };
+ await idbPut("bills", obj);
+ await reloadStore("bills");
+ toast(editId?"Invoice updated.":"Invoice created.","success");
+ closeModal();
+}
+function renderBills(){
+ const tbody = document.getElementById("billingTable");
+ const statusF = document.getElementById("billStatusFilter").value;
+ const list = cache.bills.filter(b=>!statusF || b.status===statusF).sort((a,b)=>(b.date||"").localeCompare(a.date||""));
+ tbody.innerHTML = list.length ? list.map(b=>{
+  const p = getPatient(b.patientId);
+  return `<tr>
+   <td><strong>${esc(b.id)}</strong></td>
+   <td>${esc(p?.name||"Unknown")}</td>
+   <td>${esc(b.date)}</td>
+   <td>${b.items?.length||1} item(s)</td>
+   <td>${esc(cache.settings.currency||"PKR")} ${fmtMoney(b.amount)}</td>
+   <td>${b.status==="Paid"?'<span class="badge badge-green">Paid</span>':'<span class="badge badge-yellow">Pending</span>'}</td>
+   <td>
+    <div class="actions">
+     <button class="btn btn-outline btn-sm" onclick="printInvoice('${b.id}')">🖨</button>
+     <button class="btn btn-outline btn-sm" onclick="openBillModal('${b.id}')">Edit</button>
+     <button class="btn btn-danger btn-sm" onclick="deleteBill('${b.id}')">Delete</button>
+    </div>
+   </td>
+  </tr>`;
+ }).join("") : `<tr><td colspan="7"><div class="empty"><div class="empty-icon">₨</div>No invoices found.</div></td></tr>`;
+}
+async function deleteBill(id){
+ if(!confirm("Delete this invoice?")) return;
+ await idbDelete("bills", id);
+ await reloadStore("bills");
+ toast("Invoice deleted.","success");
+}
+function printInvoice(id){
+ const b = cache.bills.find(x=>x.id===id); if(!b) return;
+ const p = getPatient(b.patientId);
+ const clinic = cache.settings.clinic || "Al-Makkah Clinic";
+ const cur = cache.settings.currency || "PKR";
+ const w = window.open("","_blank");
+ w.document.write(`<!DOCTYPE html><html><head><title>${b.id}</title><style>
+  body{font-family:Arial;padding:40px;color:#172033;max-width:760px;margin:auto}
+  h1{color:#0f766e;margin-bottom:4px} .sub{font-size:12px;color:#64748b;margin-bottom:18px}
+  table{width:100%;border-collapse:collapse;margin-top:20px}
+  th,td{padding:10px 12px;border-bottom:1px solid #e2e8f0;text-align:left;font-size:13px}
+  th{background:#f8fafc;font-size:11px;text-transform:uppercase}
+  .total{font-size:18px;font-weight:bold;text-align:right;margin-top:18px;color:#0f766e}
+  .meta{display:grid;grid-template-columns:1fr 1fr;gap:6px;font-size:13px;margin-top:14px}
+  .foot{margin-top:50px;text-align:center;font-size:11px;color:#64748b;border-top:1px dashed #ddd;padding-top:14px}
+  .badge{display:inline-block;padding:3px 9px;border-radius:20px;font-size:11px;font-weight:700}
+  .paid{background:#dcfce7;color:#166534} .pending{background:#fef3c7;color:#92400e}
+ </style></head><body onload="window.print()">
+  <h1>${esc(clinic)}</h1>
+  <div class="sub">${esc(cache.settings.address||"")} ${cache.settings.phone?" · "+esc(cache.settings.phone):""}</div>
+  <hr>
+  <div class="meta">
+   <div><strong>Invoice:</strong> ${esc(b.id)}</div>
+   <div><strong>Date:</strong> ${esc(b.date)}</div>
+   <div><strong>Patient:</strong> ${esc(p?.name||"-")}</div>
+   <div><strong>Phone:</strong> ${esc(p?.phone||"-")}</div>
+   <div><strong>Status:</strong> <span class="badge ${b.status==="Paid"?"paid":"pending"}">${esc(b.status)}</span></div>
+  </div>
+  <table>
+   <thead><tr><th>#</th><th>Description</th><th style="text-align:right">Amount</th></tr></thead>
+   <tbody>
+    ${(b.items||[]).map((it,i)=>`<tr><td>${i+1}</td><td>${esc(it.description)}</td><td style="text-align:right">${cur} ${fmtMoney(it.amount)}</td></tr>`).join("")}
+   </tbody>
+  </table>
+  <div class="total">Total: ${cur} ${fmtMoney(b.amount)}</div>
+  <div class="foot">${esc(cache.settings.note||"")}</div>
+ </body></html>`);
+ w.document.close();
+}
+
+/* =========================================================
+   DASHBOARD & REPORTS
+   ========================================================= */
+function updateDashboard(){
+ document.getElementById("statPatients").textContent = cache.patients.length;
+ document.getElementById("statAppointments").textContent = cache.appointments.filter(a=>a.date===today() && a.status!=="Cancelled").length;
+ document.getElementById("statDoctors").textContent = cache.doctors.length;
+ const revenue = cache.bills.filter(b=>b.status==="Paid").reduce((s,b)=>s+Number(b.amount||0),0);
+ document.getElementById("statRevenue").textContent = fmtMoney(revenue);
+}
+
+function updateReports(){
+ const from = document.getElementById("reportFrom").value;
+ const to = document.getElementById("reportTo").value;
+ const inRange = d => (!from || d >= from) && (!to || d <= to);
+
+ const appts = cache.appointments.filter(a=>inRange(a.date||""));
+ const rxs = cache.prescriptions.filter(r=>inRange(r.date||""));
+ const bills = cache.bills.filter(b=>inRange(b.date||""));
+ const patients = cache.patients; // total always
+
+ const revenue = bills.filter(b=>b.status==="Paid").reduce((s,b)=>s+Number(b.amount||0),0);
+ const pending = bills.filter(b=>b.status==="Pending").reduce((s,b)=>s+Number(b.amount||0),0);
+
+ document.getElementById("reportPatients").textContent = patients.length;
+ document.getElementById("reportAppointments").textContent = appts.length;
+ document.getElementById("reportPrescriptions").textContent = rxs.length;
+ document.getElementById("reportRevenue").textContent = fmtMoney(revenue);
+
+ // breakdown
+ const statuses = ["Scheduled","Waiting","Completed","Cancelled"];
+ const counts = statuses.map(s=>({s, c:appts.filter(a=>a.status===s).length}));
+ const max = Math.max(1, ...counts.map(x=>x.c));
+ document.getElementById("reportApptBreakdown").innerHTML = counts.map(x=>`
+  <div style="margin-bottom:10px">
+   <div style="display:flex;justify-content:space-between;font-size:12.5px;margin-bottom:4px"><span>${x.s}</span><strong>${x.c}</strong></div>
+   <div style="height:7px;background:#f1f5f9;border-radius:4px;overflow:hidden">
+    <div style="height:100%;width:${(x.c/max*100).toFixed(1)}%;background:var(--primary)"></div>
+   </div>
+  </div>`).join("") || `<div class="empty">No data</div>`;
+
+ document.getElementById("reportRevBreakdown").innerHTML = `
+  <div style="display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border)"><span>Paid Revenue</span><strong style="color:var(--success)">${cur()} ${fmtMoney(revenue)}</strong></div>
+  <div style="display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border)"><span>Pending Amount</span><strong style="color:var(--warning)">${cur()} ${fmtMoney(pending)}</strong></div>
+  <div style="display:flex;justify-content:space-between;padding:10px 0"><span>Total Invoices</span><strong>${bills.length}</strong></div>
+ `;
+}
+function cur(){ return cache.settings.currency || "PKR"; }
+
+function exportReportCSV(){
+ const rows = [
+  ["Report", "Al-Makkah Clinic"],
+  ["Generated", new Date().toLocaleString()],
+  [],
+  ["Patients", cache.patients.length],
+  ["Appointments", cache.appointments.length],
+  ["Prescriptions", cache.prescriptions.length],
+  ["Doctors", cache.doctors.length],
+  [],
+  ["Invoice ID","Patient","Date","Status","Amount"],
+  ...cache.bills.map(b=>[b.id, getPatient(b.patientId)?.name||"-", b.date, b.status, b.amount])
+ ];
+ const csv = rows.map(r=>r.map(c=>`"${String(c??"").replace(/"/g,'""')}"`).join(",")).join("\n");
+ const blob = new Blob([csv], {type:"text/csv"});
+ const a = document.createElement("a");
+ a.href = URL.createObjectURL(blob);
+ a.download = "al-makkah-report-"+today()+".csv";
+ a.click();
+ toast("Report exported as CSV.","success");
+}
+
+/* =========================================================
+   SETTINGS + USERS + BACKUP
+   ========================================================= */
+function loadSettings(){
+ const s = cache.settings;
+ document.getElementById("settingClinic").value = s.clinic||"";
+ document.getElementById("settingPhone").value = s.phone||"";
+ document.getElementById("settingAddress").value = s.address||"";
+ document.getElementById("settingCurrency").value = s.currency||"PKR";
+ document.getElementById("settingNote").value = s.note||"";
+}
+async function saveSettings(){
+ const s = {
+  id: "main",
+  clinic: document.getElementById("settingClinic").value.trim() || "Al-Makkah Clinic",
+  phone: document.getElementById("settingPhone").value.trim(),
+  address: document.getElementById("settingAddress").value.trim(),
+  currency: document.getElementById("settingCurrency").value,
+  note: document.getElementById("settingNote").value.trim()
+ };
+ await idbPut("settings", s);
+ cache.settings = s;
+ toast("Settings saved.","success");
+}
+
+function renderUsers(){
+ const tbody = document.getElementById("usersTable");
+ tbody.innerHTML = cache.users.map(u=>`
+  <tr>
+   <td>${esc(u.name)}</td>
+   <td>${esc(u.username)}</td>
+   <td><span class="badge badge-blue">${esc(u.role)}</span></td>
+   <td>
+    ${u.id===session.id
+     ? '<span class="badge badge-gray">You</span>'
+     : `<button class="btn btn-danger btn-sm" onclick="deleteUser('${u.id}')">Delete</button>`}
+   </td>
+  </tr>`).join("") || `<tr><td colspan="4" class="empty">No users</td></tr>`;
+}
+function openUserModal(){
+ openModal("Add User", `
+  <div class="form-grid">
+   <div class="full"><label>Full Name</label><input id="uName"></div>
+   <div><label>Username</label><input id="uUser"></div>
+   <div><label>Password</label><input id="uPass" type="password" minlength="6"></div>
+   <div class="full"><label>Role</label><select id="uRole"><option value="admin">Administrator</option><option value="doctor">Doctor</option><option value="receptionist">Receptionist</option></select></div>
+  </div>
+ `, async ()=>{
+  const name = document.getElementById("uName").value.trim();
+  const username = document.getElementById("uUser").value.trim();
+  const pass = document.getElementById("uPass").value;
+  const role = document.getElementById("uRole").value;
+  if(!name||!username||!pass){ toast("All fields required.","error"); return; }
+  if(pass.length<6){ toast("Password min 6 chars.","error"); return; }
+  if(cache.users.some(u=>u.username.toLowerCase()===username.toLowerCase())){ toast("Username taken.","error"); return; }
+  const user = { id:uid("u"), name, username, password:hash(pass), role, createdAt:new Date().toISOString() };
+  await idbPut("users", user);
+  cache.users.push(user);
+  renderUsers();
+  toast("User added.","success");
+  closeModal();
+ });
+}
+async function deleteUser(id){
+ if(!confirm("Delete this user?")) return;
+ await idbDelete("users", id);
+ await reloadStore("users");
+ renderUsers();
+ toast("User deleted.","success");
+}
+
+async function exportBackup(){
+ const backup = { exportedAt:new Date().toISOString(), version:DB_VERSION };
+ for(const s of ["patients","doctors","appointments","prescriptions","bills","users"]){
+  backup[s] = await idbGetAll(s);
+ }
+ backup.settings = await idbGetAll("settings");
+ const blob = new Blob([JSON.stringify(backup,null,2)],{type:"application/json"});
+ const a = document.createElement("a");
+ a.href = URL.createObjectURL(blob);
+ a.download = "al-makkah-backup-"+today()+".json";
+ a.click();
+ toast("Backup downloaded.","success");
+}
+async function importBackup(e){
+ const file = e.target.files[0]; if(!file) return;
+ if(!confirm("Importing will REPLACE all current data. Continue?")) { e.target.value=""; return; }
+ try{
+  const text = await file.text();
+  const b = JSON.parse(text);
+  for(const s of ["patients","doctors","appointments","prescriptions","bills","users"]){
+   if(b[s]) for(const item of b[s]) await idbPut(s, item);
+  }
+  if(b.settings) for(const item of b.settings) await idbPut("settings", item);
+  await loadAllFromDB();
+  updateAll();
+  renderUsers();
+  loadSettings();
+  toast("Backup restored successfully.","success");
+ }catch(err){
+  toast("Invalid backup file.","error");
+ }
+ e.target.value = "";
+}
+async function clearAllData(){
+ if(!confirm("This will DELETE ALL clinic data permanently. Are you sure?")) return;
+ if(!confirm("Final confirmation — this cannot be undone. Delete everything?")) return;
+ for(const s of ["patients","doctors","appointments","prescriptions","bills"]){
+  await idbClear(s);
+ }
+ await seedIfEmpty();
+ await loadAllFromDB();
+ updateAll();
+ toast("All data cleared.","success");
+}
+
+/* =========================================================
+   RELOAD HELPERS
+   ========================================================= */
+async function reloadStore(name){
+ cache[name] = await idbGetAll(name);
+ updateAll();
+}
+
+function updateAll(){
+ renderPatients();
+ renderDoctors();
+ renderAppointments();
+ renderPrescriptions();
+ renderBills();
+ updateDashboard();
+ updateReports();
+}
+
+/* =========================================================
+   INIT
+   ========================================================= */
+(async function init(){
+ try{
+  await openDB();
+  await seedIfEmpty();
+  await loadAllFromDB();
+  loadSettings();
+
+  // Restore session
+  const savedSession = sessionStorage.getItem("almakkah_session");
+  if(savedSession){
+   try{
+    const s = JSON.parse(savedSession);
+    const u = cache.users.find(x=>x.id===s.id);
+    if(u){ session = s; enterApp(); return; }
+   }catch(e){}
+  }
+  // Show login
+  document.getElementById("loginScreen").style.display = "flex";
+  document.getElementById("app").style.display = "none";
+ }catch(err){
+  console.error(err);
+  alert("Database initialization failed: " + err.message);
+ }
+})();
+
+/* Expose functions for inline onclick */
+window.doLogin = doLogin;
+window.doRegister = doRegister;
+window.doLogout = doLogout;
+window.switchAuthTab = switchAuthTab;
+window.toggleSidebar = toggleSidebar;
+window.showPage = showPage;
+window.closeModal = closeModal;
+window.openPatientModal = openPatientModal;
+window.viewPatient = viewPatient;
+window.deletePatient = deletePatient;
+window.openDoctorModal = openDoctorModal;
+window.deleteDoctor = deleteDoctor;
+window.openAppointmentModal = openAppointmentModal;
+window.deleteAppointment = deleteAppointment;
+window.openPrescriptionModal = openPrescriptionModal;
+window.viewPrescription = viewPrescription;
+window.deletePrescription = deletePrescription;
+window.printRx = printRx;
+window.openBillModal = openBillModal;
+window.addBillItem = addBillItem;
+window.renderBillItems = renderBillItems;
+window.printInvoice = printInvoice;
+window.deleteBill = deleteBill;
+window.updateReports = updateReports;
+window.exportReportCSV = exportReportCSV;
+window.saveSettings = saveSettings;
+window.openUserModal = openUserModal;
+window.deleteUser = deleteUser;
+window.exportBackup = exportBackup;
+window.importBackup = importBackup;
+window.clearAllData = clearAllData;
+</script>
+
+</body>
+</html>
